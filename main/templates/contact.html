@@ -1,0 +1,8 @@
+{% extends "base.html" %}
+{% block body %}
+    <h1>Admin & Abuse Contact Form</h1>
+    <form method="post">{% csrf_token %}
+        {{ form.as_p }}
+        <input type="submit" value="Send message">
+    </form>
+{% endblock %}

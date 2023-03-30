@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Failure{% endblock %}
+{% block body %}
+    <h1>Success</h1>
+    <p id="msg" class="lead">
+    Your request was successful.
+    </p>
+    <script>
+        let params = new URLSearchParams(window.location.search)
+        $("p#msg").text(params.get("msg"));
+    </script>
+{% endblock %}
