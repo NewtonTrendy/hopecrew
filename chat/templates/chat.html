@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Chat{% endblock %}
+{% block head %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.1/knockout-latest.js" integrity="sha512-2AL/VEauKkZqQU9BHgnv48OhXcJPx9vdzxN1JrKDVc4FPU/MEE/BZ6d9l0mP7VmvLsjtYwqiYQpDskK9dG8KBA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+{% endblock %}
+{% block body %}
+    <div class="container" style="border:1px solid darkgrey">
+        <div id="history-users" class="pure-g">
+            <div class="pure-u-19-24" style="height:100%;">
+                <div id="history" class="l-box"
+                     data-bind="foreach: vm.messages">
+                    <div>
+                        <span data-bind="text: user"></span>:
+                        <span data-bind="text: body"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="pure-u-5-24">
+                <div id="users" class="l-box pl-l-box">
+                    Loading...
+                </div>
+            </div>
+        </div>
+
+        <form id="msgform" class="pure-form">{% csrf_token %}
+            <div class="pure-g">
+                <div class="pure-u-20-24">
+                    <input data-bind="value: vm.message,
+                           event: {enter: onMsg}"
+                           class="pure-input pure-u-1"
+                           placeholder="Type your message...">
+                </div>
+                <div class="pure-u-4-24">
+                    <button class="pure-button pure-button-primary pure-u-1"
+                            data-bind="event: {click: onMsg}"
+                            type="submit">submit</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script>
+        let vm = {
+            message: ko.observable(''),
+            messages: ko.observableArray([{"user": "none", "body": "loading"}]),
+            //let users = ko.observableArray([]);
+            last_refresh: ko.observable(),
+        }
+
+        ko.applyBindings(vm);
+
+        var intervalId = window.setInterval(function(){
+          vm.messages($.get('{% url "chat_history" %}'));
+        }, 2000);
+
+        function onMsg(){
+            $.post(
+                '{% url "chat_new" %}',
+                $("#msgform").serialize(),
+                function () {$('#msgform input').text('')}
+            )
+        }
+
+    </script>
+{% endblock %}

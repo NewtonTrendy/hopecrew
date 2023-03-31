@@ -12,11 +12,3 @@ class Contact(models.Model):
 
     def __str__(self):
         return self.name
-
-
-class Message(models.Model):
-    dt = models.DateTimeField(auto_now_add=True)
-    body = models.TextField()
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
-    index = models.IntegerField(default=0)
-    deleted = models.BooleanField()
