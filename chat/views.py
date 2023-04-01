@@ -1,8 +1,12 @@
 import json
 
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core import serializers
+from django.db.models import Q, Value, F
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.generic import CreateView
 
@@ -19,35 +23,47 @@ def ajax_login_required(view):
     return wrapper
 
 
-class New(CreateView):
+class New(LoginRequiredMixin, View):
     http_method_names = ["post"]
-    model = Message
+
+    def post(self, req):
+        if not req.POST.get("body"):
+            return JsonResponse({"error": "no body"})
+        try:
+            msg_id = Message.objects.all().order_by("-msg_id")[0].msg_id + 1
+        except IndexError:
+            msg_id = 0
+        Message(msg_id=msg_id, user=req.user,
+                body=req.POST["body"]).save()
+        return JsonResponse({"success": True})
 
 
-class History(View):
+class History(LoginRequiredMixin, View):
     def _get_edited(self, qs):
         if not qs.exists():
             return []
-        for i in range(qs):
-            qs[i] = Message.objects.filter(
-                msg_id=qs[i].msg_id).order_by("-index")[0]
-        return qs
+        out = []
+        for i in range(qs.count()):
+            out.append(dict(Message.objects.filter(
+                msg_id=qs[i]['msg_id']).order_by("-index").annotate(
+                username=F("user__username")).values(
+                    "body", "username", "dt", 'msg_id')[0]))
+        return out
 
-    @login_required
     def get(self, req):
         from_dt = req.GET.get("from_dt")
         to_dt = req.GET.get("to_dt")
 
-        msgs = Message.objects.filter(
-            deleted=False, index=0
-        ).order_by("-dt")
+        msgs = Message.objects.filter(deleted=False,
+                index=0).order_by("dt").values("msg_id")
+        print(msgs)
 
         if from_dt:
             msgs.filter(dt__gte=from_dt)
         if to_dt:
             msgs.filter(dt__lte=to_dt)
 
-        return JsonResponse(self._get_edited(msgs), safe=False)
+        return JsonResponse({"messages":self._get_edited(msgs)})
 
 
 class Edit(View):
