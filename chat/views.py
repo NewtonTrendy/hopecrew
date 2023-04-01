@@ -61,7 +61,7 @@ class History(LoginRequiredMixin, View):
         to_dt = req.GET.get("to_dt")
 
         msgs = Message.objects.filter(deleted=False,
-                index=0).order_by("dt").values("msg_id")
+                index=0).order_by("dt").values("msg_id")[0:100]
         print(msgs)
 
         if from_dt:

@@ -18,6 +18,17 @@
         .pl-l-box {
             border-left: 1px dashed darkgrey;
         }
+        #newmessages{
+            position: fixed;
+            opacity:0.9;
+            top:80px;
+            left:40px;
+            width:200px;
+            border-radius: 5px;
+            background-color: orange;
+            border: 1px solid darkgrey;
+            transition: ease 200ms;
+        }
     </style>
 {% endblock %}
 {% block body %}
@@ -31,8 +42,8 @@
                              <span data-bind="text: username"></span>:
                              <span data-bind="text: body"></span>
                          </div>
-
                     </div>
+                    <div id="newmessages">There are new messages.</div>
                 </div>
             </div>
             <div class="pure-u-5-24">
@@ -46,6 +57,7 @@
             <div class="pure-g">
                 <div class="pure-u-20-24">
                     <input name="body"
+                           autocomplete="off"
                            data-bind="value: vm.message,
                            event: {enter: onMsg}"
                            class="pure-input pure-u-1"
@@ -86,11 +98,12 @@
             scr = obj.scrollTop === (obj.scrollHeight - obj.offsetHeight);
             if (scr) {
                 $("#newmessages").hide();
+
             }
             $.getJSON('{% url "chat_history" %}', function(dd){
                 if (vm.msgs().length != dd.messages.length) {
                     vm.msgs(dd.messages);
-                    if (scr) {
+                    if (scr !== true) {
                         $("#newmessages").show();
                     }
                 }
