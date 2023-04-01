@@ -64,38 +64,40 @@
             users: ko.observableArray([{username:'loading'}]),
             message: ko.observable(''),
             msgs: ko.observableArray([{"username": "none", "body": "loading", "formatted_time": "04:04:04", "msg_id": 0}]),
-            //let users: ko.observableArray([]),
-            last_refresh: ko.observable()
+            last_refresh: ko.observable(),
+            refresh_interval: ko.observable(2000),
         }
 
         ko.applyBindings(vm);
 
+        obj = $("#history")[0];
+
         vm.msgs.subscribe(function(changes) {
             changes.forEach(function(change) {
                 if (change.status === 'added') {
-                    console.log("Added or removed! The added/removed element is:", change.value);
+                    if (scr){
+                        obj.scrollTo(0, obj.scrollHeight);
+                    }
                 }
             });
         }, null, "arrayChange");
-        var scr = true;
 
         var intervalId = window.setInterval(function(){
-            eleme = $("#history")[0];
-
+            scr = obj.scrollTop === (obj.scrollHeight - obj.offsetHeight);
+            if (scr) {
+                $("#newmessages").hide();
+            }
             $.getJSON('{% url "chat_history" %}', function(dd){
                 if (vm.msgs().length != dd.messages.length) {
                     vm.msgs(dd.messages);
-                    scr = true;
+                    if (scr) {
+                        $("#newmessages").show();
+                    }
                 }
                 vm.users(dd.users);
+                vm.last_refresh(Date())
             });
-
-            if (scr){
-                eleme.scrollTo(0, eleme.scrollHeight);
-                scr = false;
-            }
-
-        }, 2000);
+        }, vm.refresh_interval());
 
         function onMsg(){
             $.post(
