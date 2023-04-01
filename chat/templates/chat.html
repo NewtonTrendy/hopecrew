@@ -18,10 +18,13 @@
         .pl-l-box {
             border-left: 1px dashed darkgrey;
         }
+        #history{
+            position:relative;
+        }
         #newmessages{
-            position: fixed;
+            position: absolute;
             opacity:0.9;
-            top:80px;
+            top:20px;
             left:40px;
             width:200px;
             border-radius: 5px;
@@ -29,18 +32,49 @@
             border: 1px solid darkgrey;
             transition: ease 200ms;
         }
+        .modal{
+            position: fixed;
+            opacity:1.0;
+            top:10%;
+            left:calc(25% - 1em);
+            width:50%;
+            border-radius: 5px;
+            background-color: lightsalmon;
+            border: 1px solid darkgrey;
+            transition: ease 200ms;
+            box-shadow: black;
+            padding:1em;
+            z-index:9999;
+        }
     </style>
 {% endblock %}
 {% block body %}
     <div class="container" style="border:1px solid darkgrey">
+         {% for command in commands %}
+            <div class="modal" id="{{ command.tag }}modal">
+                <h2>{{ command.name }}</h2>
+                <p>{{ command.description }}</p>
+                <form>{% csrf_token %}
+                    {% for input in command.inputs.all %}
+                        <b>{{ input.name }}</b>
+                        <p>{{ input.description }}</p>
+                        <input name="{{ input.tag }}">
+                    {% endfor %}
+                    <input type="submit" value="submit">
+                </form>
+            </div>
+        {% endfor %}
         <div id="history-users" class="pure-g">
             <div class="pure-u-19-24" style="height:100%;">
                 <div id="history" class="l-box">
                      <div data-bind="foreach: msgs">
                          <div style="background-color: lightblue; border-radius: 5px;padding:0.5em;margin:3px;">
-                             [<span data-bind="text: formatted_time"></span>]
-                             <span data-bind="text: username"></span>:
-                             <span data-bind="text: body"></span>
+                             <small style="width:70px">[<span data-bind="text: formatted_time"></span>]</small>
+                             <span style="word-break:break-all">
+                                 <<span data-bind="text: username"></span>>
+                                 <span data-bind="text: body"></span>
+                             </span>
+                             <span style="float:right"><a href="">more</a></span>
                          </div>
                     </div>
                     <div id="newmessages">There are new messages.</div>
@@ -54,14 +88,19 @@
         </div>
 
         <form id="msgform" class="pure-form">{% csrf_token %}
-            <div class="pure-g">
+            <div id="input" class="pure-g">
                 <div class="pure-u-20-24">
                     <input name="body"
+                           list="commandlist"
                            autocomplete="off"
                            data-bind="value: vm.message,
                            event: {enter: onMsg}"
                            class="pure-input pure-u-1"
                            placeholder="Type your message...">
+                    <datalist id="commandlist">
+                        <option value="/Test">
+                        <option value="/Test2">
+                    </datalist>
                 </div>
                 <div class="pure-u-4-24">
                     <button class="pure-button pure-button-primary pure-u-1"
@@ -75,7 +114,7 @@
         var vm = {
             users: ko.observableArray([{username:'loading'}]),
             message: ko.observable(''),
-            msgs: ko.observableArray([{"username": "none", "body": "loading", "formatted_time": "04:04:04", "msg_id": 0}]),
+            msgs: ko.observableArray([]),
             last_refresh: ko.observable(),
             refresh_interval: ko.observable(2000),
         }
@@ -98,7 +137,6 @@
             scr = obj.scrollTop === (obj.scrollHeight - obj.offsetHeight);
             if (scr) {
                 $("#newmessages").hide();
-
             }
             $.getJSON('{% url "chat_history" %}', function(dd){
                 if (vm.msgs().length != dd.messages.length) {
@@ -111,6 +149,17 @@
                 vm.last_refresh(Date())
             });
         }, vm.refresh_interval());
+
+        window.setInterval(function(){
+            console.log("running");
+            $("#commanddropdown").toggle();
+        }, 5000);
+
+        {% for command in commands %}
+        $("#{{ command.tag }}modal").hide();
+        {% endfor %}
+        $("#newmessages").hide();
+
 
         function onMsg(){
             $.post(

@@ -20,3 +20,28 @@ class Message(models.Model):
 class UserPing(models.Model):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     dt = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.user.username + " at " + self.dt
+
+
+class Command(models.Model):
+    name = models.CharField(max_length=200)
+    tag = models.CharField(max_length=50)
+    description = models.TextField()
+    inputs = models.ManyToManyField("CommandInput")
+    function_code = models.TextField()
+    level = models.IntegerField(default=0)
+
+    def __str__(self):
+        return self.name
+
+
+class CommandInput(models.Model):
+    name = models.CharField(max_length=200)
+    tag = models.CharField(max_length=50)
+    description = models.TextField()
+    regex = models.CharField(max_length=500)
+
+    def __str__(self):
+        return self.name

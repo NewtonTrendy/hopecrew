@@ -12,17 +12,15 @@ from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.generic import CreateView
 
-from chat.models import Message, UserPing
+from chat.models import Message, UserPing, Command
 from functools import wraps
 from django.core.exceptions import PermissionDenied
 
-def ajax_login_required(view):
-    @wraps(view)
-    def wrapper(request, *args, **kwargs):
-        if not request.user.is_authenticated():
-            raise PermissionDenied
-        return view(request, *args, **kwargs)
-    return wrapper
+
+class Chat(View):
+    def get(self, req):
+        cmds = Command.objects.all()
+        return render(req, "chat.html", context={"commands": cmds})
 
 
 class New(LoginRequiredMixin, View):
@@ -88,7 +86,7 @@ class History(LoginRequiredMixin, View):
                              "users": users}, safe=False)
 
 
-class Edit(View):
+class Edit(LoginRequiredMixin, View):
     @login_required
     def post(self, req):
         query = json.loads(req.get("query", None))
