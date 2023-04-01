@@ -17,3 +17,6 @@ class Message(models.Model):
     def __str__(self):
         return self.body
 
+class UserPing(models.Model):
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    dt = models.DateTimeField(auto_now_add=True)

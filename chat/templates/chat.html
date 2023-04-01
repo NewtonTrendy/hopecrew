@@ -1,7 +1,24 @@
 {% extends "base.html" %}
 {% block title %}Chat{% endblock %}
 {% block head %}
-<script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.1/knockout-latest.js" integrity="sha512-2AL/VEauKkZqQU9BHgnv48OhXcJPx9vdzxN1JrKDVc4FPU/MEE/BZ6d9l0mP7VmvLsjtYwqiYQpDskK9dG8KBA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/knockout/3.5.1/knockout-latest.js" integrity="sha512-2AL/VEauKkZqQU9BHgnv48OhXcJPx9vdzxN1JrKDVc4FPU/MEE/BZ6d9l0mP7VmvLsjtYwqiYQpDskK9dG8KBA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>
+        #history {
+            overflow: scroll;
+        }
+        #history-users{
+            min-height:70px;
+            height:calc(80vh - 35px);
+        }
+        .l-box {
+            padding: 1em;
+            height:calc(100% - 35px) !important;
+            margin: auto;
+        }
+        .pl-l-box {
+            border-left: 1px dashed darkgrey;
+        }
+    </style>
 {% endblock %}
 {% block body %}
     <div class="container" style="border:1px solid darkgrey">
@@ -10,7 +27,7 @@
                 <div id="history" class="l-box">
                      <div data-bind="foreach: msgs">
                          <div style="background-color: lightblue; border-radius: 5px;padding:0.5em;margin:3px;">
-                             [<span data-bind="text: dt"></span>]
+                             [<span data-bind="text: formatted_time"></span>]
                              <span data-bind="text: username"></span>:
                              <span data-bind="text: body"></span>
                          </div>
@@ -19,8 +36,8 @@
                 </div>
             </div>
             <div class="pure-u-5-24">
-                <div id="users" class="l-box pl-l-box">
-                    Loading...
+                <div data-bind="foreach: users" id="users" class="l-box pl-l-box">
+                    <span data-bind="text: username"></span>
                 </div>
             </div>
         </div>
@@ -44,16 +61,40 @@
     </div>
     <script>
         var vm = {
+            users: ko.observableArray([{username:'loading'}]),
             message: ko.observable(''),
-            msgs: ko.observableArray([{"username": "none", "body": "loading", "dt": "04:04:04", "msg_id": 0}]),
+            msgs: ko.observableArray([{"username": "none", "body": "loading", "formatted_time": "04:04:04", "msg_id": 0}]),
             //let users: ko.observableArray([]),
             last_refresh: ko.observable()
         }
 
         ko.applyBindings(vm);
 
+        vm.msgs.subscribe(function(changes) {
+            changes.forEach(function(change) {
+                if (change.status === 'added') {
+                    console.log("Added or removed! The added/removed element is:", change.value);
+                }
+            });
+        }, null, "arrayChange");
+        var scr = true;
+
         var intervalId = window.setInterval(function(){
-          $.getJSON('{% url "chat_history" %}', function(dd){vm.msgs(dd.messages)});
+            eleme = $("#history")[0];
+
+            $.getJSON('{% url "chat_history" %}', function(dd){
+                if (vm.msgs().length != dd.messages.length) {
+                    vm.msgs(dd.messages);
+                    scr = true;
+                }
+                vm.users(dd.users);
+            });
+
+            if (scr){
+                eleme.scrollTo(0, eleme.scrollHeight);
+                scr = false;
+            }
+
         }, 2000);
 
         function onMsg(){

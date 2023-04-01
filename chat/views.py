@@ -1,16 +1,18 @@
 import json
+from datetime import timedelta
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core import serializers
-from django.db.models import Q, Value, F
+from django.db.models import Q, Value, F, CharField, Func
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django.views import View
 from django.views.generic import CreateView
 
-from chat.models import Message
+from chat.models import Message, UserPing
 from functools import wraps
 from django.core.exceptions import PermissionDenied
 
@@ -46,8 +48,12 @@ class History(LoginRequiredMixin, View):
         for i in range(qs.count()):
             out.append(dict(Message.objects.filter(
                 msg_id=qs[i]['msg_id']).order_by("-index").annotate(
-                username=F("user__username")).values(
-                    "body", "username", "dt", 'msg_id')[0]))
+                username=F("user__username"), formatted_time=Func(
+    F('dt'),
+    Value('HH24:MI:SS'),
+    function='to_char',
+    output_field=CharField()
+  )).values("body", "username", "formatted_time", 'msg_id')[0]))
         return out
 
     def get(self, req):
@@ -63,7 +69,23 @@ class History(LoginRequiredMixin, View):
         if to_dt:
             msgs.filter(dt__lte=to_dt)
 
-        return JsonResponse({"messages":self._get_edited(msgs)})
+        UserPing(user=req.user).save()
+        users = UserPing.objects.filter(
+            dt__gte=timezone.now()-timedelta(
+            minutes=1)).annotate(
+            username=F("user__username"),
+            formatted_time=Func(
+                F('dt'),
+                Value('HH:MM:SS'),
+                function='to_char',
+                output_field=CharField()
+            )).order_by("-username", "dt").distinct("username"
+                        ).values("formatted_time", "username")
+
+        users = [dict(i) for i in users]
+
+        return JsonResponse({"messages": self._get_edited(msgs),
+                             "users": users}, safe=False)
 
 
 class Edit(View):
