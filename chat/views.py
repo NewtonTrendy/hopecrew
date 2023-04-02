@@ -17,7 +17,7 @@ from functools import wraps
 from django.core.exceptions import PermissionDenied
 
 
-class Chat(View):
+class Chat(LoginRequiredMixin, View):
     def get(self, req):
         cmds = Command.objects.all()
         return render(req, "chat.html", context={"commands": cmds})

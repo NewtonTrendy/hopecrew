@@ -49,7 +49,7 @@
     </style>
 {% endblock %}
 {% block body %}
-    <div class="container" style="border:1px solid darkgrey">
+    <div style="border:1px solid darkgrey">
          {% for command in commands %}
             <div class="modal" id="{{ command.tag }}modal">
                 <h2>{{ command.name }}</h2>
@@ -91,6 +91,7 @@
             <div id="input" class="pure-g">
                 <div class="pure-u-20-24">
                     <input name="body"
+                           id="msgforminput"
                            list="commandlist"
                            autocomplete="off"
                            data-bind="value: vm.message,
@@ -98,8 +99,9 @@
                            class="pure-input pure-u-1"
                            placeholder="Type your message...">
                     <datalist id="commandlist">
-                        <option value="/Test">
-                        <option value="/Test2">
+                        {% for command in commands %}
+                            <option value="/{{ command.tag }}">
+                        {% endfor %}
                     </datalist>
                 </div>
                 <div class="pure-u-4-24">
@@ -162,6 +164,13 @@
 
 
         function onMsg(){
+            console.log(vm.message().split("/"));
+            if (vm.message()[0] === "/"){
+                var cmd = vm.message().split("/")[1];
+                if ([{% for c in commands %}"{{ c.tag }}",{% endfor %}].includes(cmd)){
+                    $("#"+cmd+"modal").show();
+                }
+            }
             $.post(
                 '{% url "chat_new" %}',
                 $("#msgform").serialize(),

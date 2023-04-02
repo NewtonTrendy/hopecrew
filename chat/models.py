@@ -27,7 +27,7 @@ class UserPing(models.Model):
 
 class Command(models.Model):
     name = models.CharField(max_length=200)
-    tag = models.CharField(max_length=50)
+    tag = models.CharField(max_length=50, unique=True)
     description = models.TextField()
     inputs = models.ManyToManyField("CommandInput")
     function_code = models.TextField()
@@ -39,7 +39,7 @@ class Command(models.Model):
 
 class CommandInput(models.Model):
     name = models.CharField(max_length=200)
-    tag = models.CharField(max_length=50)
+    tag = models.CharField(max_length=50, unique=True)
     description = models.TextField()
     regex = models.CharField(max_length=500)
 

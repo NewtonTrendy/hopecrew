@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
     <title>hope - {% block title %}No title{% endblock %}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css"
           integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls"
@@ -37,16 +38,51 @@
 </head>
 <body>
     <div class="header">
-        <div class="pure-menu pure-menu-horizontal">
-          <ul class="pure-menu-list">
+        <div style="width:100vw" class="pure-menu pure-menu-horizontal pure-menu-scrollable">
+            <div class="pure-menu-heading" style="color:firebrick">Hope</div>
+            <div class="pure-menu-heading">scroll &raquo;&raquo;&raquo;</div>
+            <ul class="pure-menu-list">
             <li class="pure-menu-item">
               <a href="{% url "home" %}" class="pure-menu-link">Home</a>
             </li>
+              {% if user.is_authenticated %}
             <li class="pure-menu-item">
+              <a href="{% url "chat" %}" class="pure-menu-link">Chat</a>
+            </li>
+              <li class="pure-menu-item">
+              <a href="{% url "logout" %}" class="pure-menu-link">Logout</a>
+            </li>
+              {% else %}
+            <li class="pure-menu-item">
+              <a href="{% url "login" %}" class="pure-menu-link">Login</a>
+            </li>
+            <li class="pure-menu-item">
+              <a href="{% url "register" %}" class="pure-menu-link">Register</a>
+            </li>
+              {% endif %}
+            <li class="pure-menu-item">
+              <a href="#" class="pure-menu-link">FAQ</a>
+            </li>
+              <li class="pure-menu-item">
+              <a href="#" class="pure-menu-link">Guides</a>
+            </li>
+              <li class="pure-menu-item">
               <a href="#" class="pure-menu-link">Blog</a>
             </li>
             <li class="pure-menu-item">
               <a href="#" class="pure-menu-link">About</a>
+            </li>
+
+            <li class="pure-menu-item">
+              <a href="" class="pure-menu-link">Register</a>
+            </li>
+
+            <li class="pure-menu-item">
+              <a href="{% url "register" %}" class="pure-menu-link">Register</a>
+            </li>
+
+            <li class="pure-menu-item">
+              <a href="{% url "register" %}" class="pure-menu-link">Register</a>
             </li>
           </ul>
         </div>
