@@ -5,24 +5,24 @@
     <style>
         #history {
             overflow: scroll;
+            padding:0.2em;
         }
         #history-users{
             min-height:70px;
             height:calc(80vh - 35px);
         }
         .l-box {
-            padding: 1em;
-            height:calc(100% - 35px) !important;
+            padding:0em;
+            height:calc(100% - 0.4em);
             margin: auto;
         }
         .pl-l-box {
+            padding-top:0.5em;
+            padding-left:0.5em;
             border-left: 1px dashed darkgrey;
         }
-        #history{
-            position:relative;
-        }
         #newmessages{
-            position: absolute;
+            position: fixed;
             opacity:0.9;
             top:20px;
             left:40px;
@@ -70,14 +70,15 @@
                      <div data-bind="foreach: msgs">
                          <div style="background-color: lightblue; border-radius: 5px;padding:0.5em;margin:3px;">
                              <small style="width:70px">[<span data-bind="text: formatted_time"></span>]</small>
-                             <span style="word-break:break-all">
+                             <span style="word-wrap:break-word">
                                  <<span data-bind="text: username"></span>>
                                  <span data-bind="text: body"></span>
                              </span>
-                             <span style="float:right"><a href="">more</a></span>
+                             <span style="float:right"><small><a href="">more</a></small></span>
                          </div>
                     </div>
                     <div id="newmessages">There are new messages.</div>
+
                 </div>
             </div>
             <div class="pure-u-5-24">
@@ -116,7 +117,7 @@
         var vm = {
             users: ko.observableArray([{username:'loading'}]),
             message: ko.observable(''),
-            msgs: ko.observableArray([]),
+            msgs: ko.observableArray([{"username":"loading", "body":"loading", "formatted_time":"00:00:00"}]),
             last_refresh: ko.observable(),
             refresh_interval: ko.observable(2000),
         }
@@ -124,50 +125,39 @@
         ko.applyBindings(vm);
 
         obj = $("#history")[0];
-
-        vm.msgs.subscribe(function(changes) {
-            changes.forEach(function(change) {
-                if (change.status === 'added') {
-                    if (scr){
-                        obj.scrollTo(0, obj.scrollHeight);
-                    }
-                }
-            });
-        }, null, "arrayChange");
+        var scr = true;
 
         var intervalId = window.setInterval(function(){
-            scr = obj.scrollTop === (obj.scrollHeight - obj.offsetHeight);
-            if (scr) {
-                $("#newmessages").hide();
-            }
             $.getJSON('{% url "chat_history" %}', function(dd){
-                if (vm.msgs().length != dd.messages.length) {
+                scr = obj.scrollTop >= (obj.scrollHeight - obj.offsetHeight - 10);
+                if (scr) {
+                    $("#newmessages").hide();
+                }
+                if (JSON.stringify(dd.messages) !== JSON.stringify(vm.msgs())){
                     vm.msgs(dd.messages);
-                    if (scr !== true) {
+                    if (scr) {
+                        obj.scrollTo(0, obj.scrollHeight);
+                    } else {
                         $("#newmessages").show();
                     }
-                }
+                };
                 vm.users(dd.users);
                 vm.last_refresh(Date())
             });
         }, vm.refresh_interval());
-
-        window.setInterval(function(){
-            console.log("running");
-            $("#commanddropdown").toggle();
-        }, 5000);
 
         {% for command in commands %}
         $("#{{ command.tag }}modal").hide();
         {% endfor %}
         $("#newmessages").hide();
 
-
         function onMsg(){
             console.log(vm.message().split("/"));
             if (vm.message()[0] === "/"){
                 var cmd = vm.message().split("/")[1];
-                if ([{% for c in commands %}"{{ c.tag }}",{% endfor %}].includes(cmd)){
+                if ([{% for c in commands %}
+                    "{{ c.tag }}",
+                {% endfor %}].includes(cmd)){
                     $("#"+cmd+"modal").show();
                 }
             }

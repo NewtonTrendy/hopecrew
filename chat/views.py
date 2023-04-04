@@ -39,13 +39,13 @@ class New(LoginRequiredMixin, View):
 
 
 class History(LoginRequiredMixin, View):
-    def _get_edited(self, qs):
-        if not qs.exists():
+    def _get_edited(self, msg_list):
+        if not len(msg_list)>0:
             return []
         out = []
-        for i in range(qs.count()):
+        for i in range(len(msg_list)):
             out.append(dict(Message.objects.filter(
-                msg_id=qs[i]['msg_id']).order_by("-index").annotate(
+                msg_id=msg_list[i]['msg_id']).order_by("-index").annotate(
                 username=F("user__username"), formatted_time=Func(
     F('dt'),
     Value('HH24:MI:SS'),
@@ -59,8 +59,7 @@ class History(LoginRequiredMixin, View):
         to_dt = req.GET.get("to_dt")
 
         msgs = Message.objects.filter(deleted=False,
-                index=0).order_by("dt").values("msg_id")[0:100]
-        print(msgs)
+                index=0).order_by("-dt").values("msg_id")[:100][::-1]
 
         if from_dt:
             msgs.filter(dt__gte=from_dt)
