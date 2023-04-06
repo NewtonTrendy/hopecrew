@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core import serializers
 from django.db.models import Q, Value, F, CharField, Func
-from django.http import JsonResponse, HttpResponse, Http404
+from django.http import JsonResponse, HttpResponse, Http404, HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404, redirect
 from django.utils import timezone
 from django.utils.decorators import method_decorator
@@ -37,12 +37,14 @@ class MessageMore(LoginRequiredMixin, ListView):
         if self.kwargs["msg_id"]:
             return super().get_queryset().filter(
                 msg_id=self.kwargs["msg_id"]).annotate(
-                username=F("user__username"), formatted_time=Func(
+                username=F("user__username"),
+                current_user=Q(user=self.request.user),
+                formatted_time=Func(
                     F('dt'),
                     Value('DD/MM/YY HH24:MI:SS'),
                     function='to_char',
                     output_field=CharField()
-                )).values("pk", "body", "username", "formatted_time", 'msg_id')
+                )).values("pk", "current_user", "body", "username", "formatted_time", 'msg_id')
         else:
             raise Http404
 
@@ -64,7 +66,6 @@ class Function(LoginRequiredMixin, View):
                 user=req.user, msg_id=msg_id).save()
 
         return JsonResponse({"success": "true"})
-
 
 
 class New(LoginRequiredMixin, View):
@@ -131,21 +132,26 @@ class History(LoginRequiredMixin, View):
 
 
 class EditView(LoginRequiredMixin, DetailView):
-    model = Message
     template_name = "edit.html"
+
+    def get_queryset(self):
+        if self.request.user.is_authenticated:
+            return Message.objects.filter(user=self.request.user)
+        else:
+            return Message.objects.none()
 
 
 class Edit(LoginRequiredMixin, View):
     def post(self, req):
         if req.POST.get("method", None) not in ("edit", "delete"):
             return JsonResponse({"error": "invalid method for endpoint"})
-        elif req.POST.get("msg_id", None):
+        elif not req.POST.get("msg_id", None):
             return JsonResponse({"error": "no msg_id provided"})
 
         msg_qs = Message.objects.filter(
             msg_id=req.POST["msg_id"]).order_by("-index")
 
-        if not msg_qs[0].user == req.user or not req.user.is_staff():
+        if not msg_qs[0].user == req.user or not req.user.is_staff:
             return JsonResponse({"error": "no message with that msg_id"})
         elif not (msg_qs[0].user == req.user) or \
                 not req.user.is_staff:
