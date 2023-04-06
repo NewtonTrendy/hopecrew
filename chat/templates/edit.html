@@ -11,17 +11,21 @@
 
 {% endblock %}
 {% block body %}
-<h1>Edit message</h1>
+    <h1>Edit Message</h1>
+    <p>Here you can edit your message or delete it.</p>
+    <br>
+    <h3>Edit your message here</h3>
     <form id="editform" class="pure-form">
         {% csrf_token %}
         <input  name="msg_id" value="{{ object.msg_id }}" type="hidden">
         <input name="method" value="edit" type="hidden">
-        <input name="body" value="{{ object.body }}"
-               data-bind="event: {enter: onEdit}">
+        <input name="body" style="width:70%;" value="{{ object.body }}"
+               data-bind="event: {enter: onEdit}"><br><br>
         <button id="edit" class="pure-button pure-button-primary"
                 type="submit" data-bind="event: {click: onEdit}">
             edit</button>
     </form>
+    <h3>Delete your message below</h3>
     <form id="deleteform" class="pure-form">
         {% csrf_token %}
         <input  name="msg_id" value="{{ object.msg_id }}" type="hidden">
