@@ -9,6 +9,7 @@ class ContactView(CreateView):
     model = Contact
     template_name = "contact.html"
     fields = ['name', 'telephone', 'email', 'body']
+    success_url = "/success?msg=Successfully submitted contact request."
 
     def form_valid(self, form):
         form.instance.user = self.request.user
