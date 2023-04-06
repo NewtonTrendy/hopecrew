@@ -74,7 +74,7 @@
                                  <<span data-bind="text: username"></span>>
                                  <span data-bind="text: body"></span>
                              </span>
-                             <span style="float:right"><small><a href="">more</a></small></span>
+                             <span style="float:right"><small><a data-bind="attr: { href: '/chat/message/' + msg_id }">more</a></small></span>
                          </div>
                     </div>
                     <div id="newmessages">There are new messages.</div>
@@ -117,7 +117,7 @@
         var vm = {
             users: ko.observableArray([{username:'loading'}]),
             message: ko.observable(''),
-            msgs: ko.observableArray([{"username":"loading", "body":"loading", "formatted_time":"00:00:00"}]),
+            msgs: ko.observableArray([{"msg_id":0, "username":"loading", "body":"loading", "formatted_time":"00:00:00"}]),
             last_refresh: ko.observable(),
             refresh_interval: ko.observable(2000),
         }
@@ -160,12 +160,13 @@
                 {% endfor %}].includes(cmd)){
                     $("#"+cmd+"modal").show();
                 }
+            } else {
+                $.post(
+                    '{% url "chat_new" %}',
+                    $("#msgform").serialize(),
+                    function(){vm.message('')}
+                )
             }
-            $.post(
-                '{% url "chat_new" %}',
-                $("#msgform").serialize(),
-                function(){vm.message('')}
-            )
         }
 
     </script>

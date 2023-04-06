@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}Message detail{% endblock %}
+{% block body %}
+    <ul>
+    {% for message in object_list %}
+        <li>{{ forloop.counter }} - [{{ message.formatted_time }}] &lt;{{ message.username }}&gt; {{ message.body }} {% if forloop.last %}<a href="{% url "chat_message_edit" message.pk %}">edit</a> {% endif %}<a href="/chat/message/report/{{ message.pk }}">report</a></li>
+    {% endfor %}
+    </ul>
+{% endblock %}
