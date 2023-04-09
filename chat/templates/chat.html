@@ -7,6 +7,9 @@
             overflow: scroll;
             padding:0.2em;
         }
+        #users{
+            overflow:scroll;
+        }
         #history-users{
             min-height:70px;
             height:calc(80vh - 35px);
@@ -46,15 +49,24 @@
             padding:1em;
             z-index:9999;
         }
+        #maindiv{
+            border:1px solid darkgrey;
+        }
+        #msgdiv{
+            background-color: lightblue;
+            border-radius: 5px;
+            padding:0.5em;
+            margin:3px;
+        }
     </style>
 {% endblock %}
 {% block body %}
-    <div style="border:1px solid darkgrey">
+    <div id="maindiv">
          {% for command in commands %}
             <div class="modal" id="{{ command.tag }}modal">
                 <h2>{{ command.name }}</h2>
                 <p>{{ command.description }}</p>
-                <form>{% csrf_token %}
+                <form action="{{ command. }}">{% csrf_token %}
                     {% for input in command.inputs.all %}
                         <b>{{ input.name }}</b>
                         <p>{{ input.description }}</p>
@@ -68,13 +80,13 @@
             <div class="pure-u-19-24" style="height:100%;">
                 <div id="history" class="l-box">
                      <div data-bind="foreach: msgs">
-                         <div style="background-color: lightblue; border-radius: 5px;padding:0.5em;margin:3px;">
-                             <small style="width:70px">[<span data-bind="text: formatted_time"></span>]</small>
+                         <div id="msgdiv">
+                             <span style="top:0px;float:right;"><small><a data-bind="attr: { href: '/chat/message/' + msg_id }">more</a></small></span>
+	                     <small style="width:70px">[<span data-bind="text: formatted_time"></span>]</small>
                              <span style="word-wrap:break-word">
                                  <<span data-bind="text: username"></span>>
                                  <span data-bind="text: body"></span>
-                             </span>
-                             <span style="float:right"><small><a data-bind="attr: { href: '/chat/message/' + msg_id }">more</a></small></span>
+                             </span>                             
                          </div>
                     </div>
                     <div id="newmessages">There are new messages.</div>
@@ -89,15 +101,16 @@
         </div>
 
         <form id="msgform" class="pure-form">{% csrf_token %}
-            <div id="input" class="pure-g">
-                <div class="pure-u-20-24">
+            <div id="input"  class="pure-g" style="height:30px">
+                <div class="pure-u-20-24" style="height:100%;">
                     <input name="body"
                            id="msgforminput"
                            list="commandlist"
                            autocomplete="off"
                            data-bind="value: vm.message,
                            event: {enter: onMsg}"
-                           class="pure-input pure-u-1"
+                           class="pure-input pure-u-1-1"
+                           style=""
                            placeholder="Type your message...">
                     <datalist id="commandlist">
                         {% for command in commands %}
@@ -106,9 +119,10 @@
                     </datalist>
                 </div>
                 <div class="pure-u-4-24">
-                    <button class="pure-button pure-button-primary pure-u-1"
+                    <button style="margin:0;height:100%"
+                            class="pure-button pure-button-primary pure-u-1-1"
                             data-bind="event: {click: onMsg}"
-                            type="submit">submit</button>
+                            type="submit">&raquo;</button>
                 </div>
             </div>
         </form>
@@ -119,7 +133,8 @@
             message: ko.observable(''),
             msgs: ko.observableArray([{"msg_id":0, "username":"loading", "body":"loading", "formatted_time":"00:00:00"}]),
             last_refresh: ko.observable(),
-            refresh_interval: ko.observable(2000),
+            refresh_interval: ko.observable(1000),
+            username: "{{ user.username }}",
         }
 
         ko.applyBindings(vm);
@@ -161,6 +176,7 @@
                     $("#"+cmd+"modal").show();
                 }
             } else {
+                vm.msgs().append({"msg_id":0, "username":vm.username(), "body":vm.message(), "formatted_time":"00:00:00"})
                 $.post(
                     '{% url "chat_new" %}',
                     $("#msgform").serialize(),

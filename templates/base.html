@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, interactive-widget=resizes-content">
     <title>hope - {% block title %}No title{% endblock %}</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/purecss@3.0.0/build/pure-min.css"
           integrity="sha384-X38yfunGUhNzHpBaEBsWLO+A0HDYOQi8ufWDkZ0k9e0eXz/tH3II7uKZ9msv++Ls"
@@ -12,6 +12,7 @@
             crossorigin="anonymous"></script>{% endblock %}
     <style>
         .container {
+            width:92%;
             padding-top:15px;
             padding-right: 15px;
             padding-left: 15px;
@@ -63,16 +64,15 @@
             <li class="pure-menu-item">
               <a href="{% url "contact"  %}" class="pure-menu-link">Abuse Contact</a>
             </li>
-{#              <li class="pure-menu-item">#}
-{#              <a href="#" class="pure-menu-link">Guides</a>#}
-{#            </li>#}
-{#              <li class="pure-menu-item">#}
-{#              <a href="#" class="pure-menu-link">Blog</a>#}
-{#            </li>#}
-{#            <li class="pure-menu-item">#}
-{#              <a href="#" class="pure-menu-link">About</a>#}
-{#            </li>#}
-
+              <li class="pure-menu-item">
+              <a href="https://wiki.hopecrew.site/" class="pure-menu-link">Guides</a>
+            </li>
+              <li class="pure-menu-item">
+              <a href="https://wiki.hopecrew.site/" class="pure-menu-link">InfoSheets</a>
+            </li>
+            <li class="pure-menu-item">
+              <a href="https://wiki.hopecrew.site/" class="pure-menu-link">Projects</a>
+            </li>
             <li class="pure-menu-item">
               <a href="https://justgiving.com/crowdfunding/halovend-initiative" class="pure-menu-link">Halovend Initiative Crowfunder</a>
             </li>

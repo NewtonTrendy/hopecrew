@@ -1,5 +1,4 @@
 from django.contrib.auth.models import User
-import json
 from django.db import models
 
 
